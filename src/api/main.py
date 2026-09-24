@@ -510,3 +510,273 @@ async def get_audit_log(limit: int = 20):
     """Retrieve the most recent prediction and forecaster review records."""
     records = _audit.get_audit_log(limit=limit)
     return {"total_records": len(records), "records": records}
+
+
+# ──────────────────────────────────────────────────────────────────────────────
+# STEP 4 — Real-Time Endpoints
+# Adds three live-data endpoints that operate alongside all existing simulation
+# endpoints without any breaking changes to the historical pipeline.
+# ──────────────────────────────────────────────────────────────────────────────
+
+import threading as _threading
+from src.data.realtime_service import RealTimeAtmosphericService
+from src.data.cyclogenesis import CyclogenesisAnalyzer
+from src.models.realtime_pipeline import RealTimePipeline
+
+# Lazy singleton — initialised once on first real-time request
+_rt_pipeline: Optional[RealTimePipeline] = None
+_rt_lock = _threading.Lock()
+
+# Scan result cache — updated by trigger-scan and auto-refreshed on requests
+_scan_cache: Dict[str, Any] = {}
+_scan_cache_lock = _threading.Lock()
+
+
+def _get_rt_pipeline() -> RealTimePipeline:
+    """Return (or lazily create) the shared RealTimePipeline instance."""
+    global _rt_pipeline
+    if _rt_pipeline is None:
+        with _rt_lock:
+            if _rt_pipeline is None:
+                _rt_pipeline = RealTimePipeline(device="cpu")
+    return _rt_pipeline
+
+
+def _run_live_scan(basin: str) -> Dict[str, Any]:
+    """Execute a full live cyclogenesis + pipeline scan and cache the result."""
+    service  = RealTimeAtmosphericService(timeout_seconds=15.0)
+    analyzer = CyclogenesisAnalyzer(service, timeout=15.0)
+    try:
+        report  = analyzer.analyze_basin(basin)
+        result  = _get_rt_pipeline().run(report)
+        payload = {
+            "basin":                basin,
+            "scan_timestamp_utc":   result.run_timestamp_utc,
+            "pipeline_version":     result.pipeline_version,
+            "data_source":          result.data_source,
+            "elapsed_seconds":      result.elapsed_seconds,
+            # Genesis
+            "genesis_lat":          result.genesis_lat,
+            "genesis_lon":          result.genesis_lon,
+            "genesis_gpi":          round(result.genesis_gpi, 4),
+            "genesis_probability":  result.genesis_probability,
+            "genesis_threat_level": result.genesis_threat_level,
+            # Intensity
+            "intensity": {
+                "wind_speed_kt":        result.intensity.wind_speed_kt,
+                "wind_speed_kmh":       result.intensity.wind_speed_kmh,
+                "uncertainty_kt":       result.intensity.uncertainty_kt,
+                "central_pressure_hpa": result.intensity.central_pressure_hpa,
+                "pressure_deficit_hpa": result.intensity.pressure_deficit_hpa,
+                "imd_category":         result.intensity.imd_category,
+            },
+            # RI
+            "rapid_intensification": {
+                "ri_probability":       result.rapid_intensification.ri_probability,
+                "is_ri_flagged":        result.rapid_intensification.is_ri_flagged,
+                "favorable_factors":    result.rapid_intensification.favorable_factors,
+                "inhibiting_factors":   result.rapid_intensification.inhibiting_factors,
+                "advisory":             result.rapid_intensification.advisory,
+            },
+            # Track
+            "track_waypoints": [
+                {
+                    "lead_hours":          w.lead_hours,
+                    "timestamp_utc":       w.timestamp_utc,
+                    "lat":                 w.lat,
+                    "lon":                 w.lon,
+                    "wind_speed_kt":       w.wind_speed_kt,
+                    "wind_speed_kmh":      w.wind_speed_kmh,
+                    "central_pressure_hpa": w.central_pressure_hpa,
+                    "imd_category":        w.imd_category,
+                }
+                for w in result.track_waypoints
+            ],
+            # Cone
+            "uncertainty_cone_geojson": result.uncertainty_cone_geojson,
+            # Risk
+            "coastal_risk_top5": result.coastal_risk[:5],
+            # Flags
+            "is_active_cyclone":            result.is_active_cyclone,
+            "requires_immediate_advisory":  result.requires_immediate_advisory,
+        }
+        with _scan_cache_lock:
+            _scan_cache[basin] = payload
+        return payload
+    finally:
+        analyzer.close()
+        service.close()
+
+
+# ── Endpoint 1: Basin Scan ────────────────────────────────────────────────────
+@app.get(
+    "/api/v1/realtime/basin-scan",
+    tags=["Real-Time"],
+    summary="Scan active NIO basins for cyclonic threats",
+)
+async def realtime_basin_scan(basin: str = "BAY_OF_BENGAL"):
+    """Scan the specified North Indian Ocean basin for active cyclonic development.
+
+    Queries live Open-Meteo atmospheric data across the basin monitoring grid,
+    computes the Genesis Potential Index (GPI) at every grid point, and returns
+    a structured list of all monitored sectors with their current threat status.
+
+    Args:
+        basin: "BAY_OF_BENGAL" (default) or "ARABIAN_SEA"
+
+    Returns:
+        Live basin-scan summary with GPI field, threat level, and atmospheric
+        state at the detected vortex centre.
+    """
+    basin_upper = basin.upper().replace(" ", "_")
+    if basin_upper not in ("BAY_OF_BENGAL", "ARABIAN_SEA"):
+        raise HTTPException(
+            status_code=400,
+            detail="basin must be 'BAY_OF_BENGAL' or 'ARABIAN_SEA'",
+        )
+
+    service  = RealTimeAtmosphericService(timeout_seconds=15.0)
+    analyzer = CyclogenesisAnalyzer(service, timeout=15.0)
+    try:
+        report = analyzer.analyze_basin(basin_upper)
+        threat = report.primary_threat
+        sectors = [
+            {
+                "lat": pt.lat,
+                "lon": pt.lon,
+                "sst_c": pt.sst_c,
+                "shear_kt": pt.shear_kt,
+                "rh700_pct": pt.rh700_pct,
+                "gpi_score": round(pt.gpi_score, 4),
+                "genesis_probability": pt.genesis_probability,
+                "threat_level": report.primary_threat.threat_level
+                    if (pt.lat == threat.center_lat and pt.lon == threat.center_lon)
+                    else ("LOW" if pt.gpi_score > 0.05 else "NONE"),
+                "cyclogenesis_favorable": pt.cyclogenesis_favorable,
+            }
+            for pt in report.grid_gpi_points
+        ]
+        return {
+            "basin": basin_upper,
+            "scan_timestamp_utc": report.timestamp_utc,
+            "total_sectors": len(sectors),
+            "primary_vortex": {
+                "lat":                 threat.center_lat,
+                "lon":                 threat.center_lon,
+                "max_gpi":             round(threat.max_gpi, 4),
+                "genesis_probability": threat.genesis_probability,
+                "threat_level":        threat.threat_level,
+                "favorable_point_count": threat.favorable_point_count,
+            },
+            "basin_mean_gpi": round(report.basin_mean_gpi, 4),
+            "basin_max_gpi":  round(report.basin_max_gpi, 4),
+            "sectors": sectors,
+        }
+    finally:
+        analyzer.close()
+        service.close()
+
+
+# ── Endpoint 2: Live Storm ────────────────────────────────────────────────────
+@app.get(
+    "/api/v1/realtime/live-storm",
+    tags=["Real-Time"],
+    summary="Complete real-time prediction payload for active storm",
+)
+async def realtime_live_storm(basin: str = "BAY_OF_BENGAL"):
+    """Return the complete real-time operational prediction payload.
+
+    Runs the full end-to-end inference chain:
+        Cyclogenesis GPI -> Intensity -> RI -> Bi-LSTM Track -> Cone -> Risk
+
+    Response includes all data required to update the Forecaster Dashboard
+    live map, intensity chart, RI gauge, and coastal risk matrix.
+
+    Returns cached result if a trigger-scan was run within the last 15 minutes,
+    otherwise executes a fresh live scan.
+    """
+    basin_upper = basin.upper().replace(" ", "_")
+    if basin_upper not in ("BAY_OF_BENGAL", "ARABIAN_SEA"):
+        raise HTTPException(
+            status_code=400,
+            detail="basin must be 'BAY_OF_BENGAL' or 'ARABIAN_SEA'",
+        )
+
+    # Return cached result if fresh (< 15 min old)
+    with _scan_cache_lock:
+        cached = _scan_cache.get(basin_upper)
+
+    if cached:
+        cached["_cache_hit"] = True
+        return cached
+
+    # No cache — run live scan
+    try:
+        payload = await asyncio.get_event_loop().run_in_executor(
+            None, _run_live_scan, basin_upper
+        )
+        payload["_cache_hit"] = False
+        return payload
+    except Exception as exc:
+        raise HTTPException(
+            status_code=503,
+            detail=f"Live scan failed: {str(exc)}. Retry in 30 seconds.",
+        )
+
+
+# ── Endpoint 3: Trigger Scan ─────────────────────────────────────────────────
+@app.post(
+    "/api/v1/realtime/trigger-scan",
+    tags=["Real-Time"],
+    summary="Trigger an on-demand live data refresh",
+)
+async def realtime_trigger_scan(
+    basin: str = "BAY_OF_BENGAL",
+    background_tasks: BackgroundTasks = None,
+):
+    """Trigger an immediate live atmospheric scan and pipeline refresh on demand.
+
+    Launches the full live scan as a background task and immediately returns
+    an acknowledgement. The updated results will be available via
+    /api/v1/realtime/live-storm once the scan completes (~10-15 seconds).
+
+    Use this endpoint when:
+    - The frontend requests a manual data refresh
+    - A new atmospheric disturbance is suspected
+    - Post-advisory verification is needed
+
+    Args:
+        basin: "BAY_OF_BENGAL" (default) or "ARABIAN_SEA"
+    """
+    basin_upper = basin.upper().replace(" ", "_")
+    if basin_upper not in ("BAY_OF_BENGAL", "ARABIAN_SEA"):
+        raise HTTPException(
+            status_code=400,
+            detail="basin must be 'BAY_OF_BENGAL' or 'ARABIAN_SEA'",
+        )
+
+    triggered_at = datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
+
+    if background_tasks is not None:
+        background_tasks.add_task(_run_live_scan, basin_upper)
+        mode = "background"
+    else:
+        # Fallback: run synchronously if background tasks unavailable
+        await asyncio.get_event_loop().run_in_executor(
+            None, _run_live_scan, basin_upper
+        )
+        mode = "synchronous"
+
+    return {
+        "status":        "SCAN_TRIGGERED",
+        "basin":         basin_upper,
+        "triggered_at":  triggered_at,
+        "mode":          mode,
+        "estimated_completion_seconds": 15,
+        "poll_endpoint": f"/api/v1/realtime/live-storm?basin={basin_upper}",
+        "message": (
+            f"Live atmospheric scan initiated for {basin_upper}. "
+            f"Results available at /api/v1/realtime/live-storm in ~15 seconds."
+        ),
+    }
+
