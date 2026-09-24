@@ -1,0 +1,28 @@
+{
+  "timestamp": "2026-09-19T20:51:02.447019+00:00",
+  "samples_evaluated": 3,
+  "detection": {
+    "precision": 1.0,
+    "recall": 1.0,
+    "f1_score": 1.0,
+    "mean_localisation_error_km": 694.92,
+    "median_localisation_error_km": 510.78
+  },
+  "intensity": {
+    "mae_knots": 29.5,
+    "rmse_knots": 29.73,
+    "target_mae_imd_official": "< 10.0 knots"
+  },
+  "rapid_intensification": {
+    "probability_of_detection_pod": 1.0,
+    "false_alarm_ratio_far": 1.0,
+    "critical_success_index_csi": 0.0,
+    "target_csi_official": "> 0.40"
+  },
+  "track_forecast": {
+    "mean_track_error_12h_km": 86.8,
+    "mean_track_error_24h_km": 428.1,
+    "mean_track_error_48h_km": 86.5,
+    "imd_operational_standard_24h_km": "< 100.0 km"
+  }
+}

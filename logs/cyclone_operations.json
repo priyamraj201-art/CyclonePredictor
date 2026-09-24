@@ -1,0 +1,47 @@
+{
+  "storms": [],
+  "observations": [
+    {
+      "storm_id": "STORM_TEST_001",
+      "timestamp": "2026-09-19T20:22:05.419476+00:00",
+      "lat": 15.2,
+      "lon": 88.4,
+      "wind_kt": 65.0,
+      "pressure_hpa": 982.0,
+      "category": "Severe Cyclonic Storm",
+      "recorded_at": "2026-09-19T20:22:05.419513+00:00"
+    },
+    {
+      "storm_id": "STORM_TEST_001",
+      "timestamp": "2026-09-19T20:40:36.252172+00:00",
+      "lat": 15.2,
+      "lon": 88.4,
+      "wind_kt": 65.0,
+      "pressure_hpa": 982.0,
+      "category": "Severe Cyclonic Storm",
+      "recorded_at": "2026-09-19T20:40:36.252207+00:00"
+    },
+    {
+      "storm_id": "STORM_TEST_001",
+      "timestamp": "2026-09-19T20:44:14.261915+00:00",
+      "lat": 15.2,
+      "lon": 88.4,
+      "wind_kt": 65.0,
+      "pressure_hpa": 982.0,
+      "category": "Severe Cyclonic Storm",
+      "recorded_at": "2026-09-19T20:44:14.261940+00:00"
+    },
+    {
+      "storm_id": "STORM_TEST_001",
+      "timestamp": "2026-09-19T20:51:02.610550+00:00",
+      "lat": 15.2,
+      "lon": 88.4,
+      "wind_kt": 65.0,
+      "pressure_hpa": 982.0,
+      "category": "Severe Cyclonic Storm",
+      "recorded_at": "2026-09-19T20:51:02.610577+00:00"
+    }
+  ],
+  "cones": [],
+  "audit_trail": []
+}

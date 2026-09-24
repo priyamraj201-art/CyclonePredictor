@@ -1,0 +1,400 @@
+/* ============================================================
+ * SIH 2026 – Cyclone AI Mission-Control Dashboard
+ * Design Language: "Mint Fintech" Style
+ * Clean, Trustworthy, Modern SaaS with Soft Gradients & Rounded Geometry
+ * ============================================================ */
+
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600;700&display=swap');
+
+/* ── Mint Fintech Design Tokens ────────────────────────────── */
+:root {
+  /* Surfaces & Backgrounds */
+  --color-bg-base: #FAFBFC;
+  --color-bg-surface: #FFFFFF;
+  --color-bg-card: #FFFFFF;
+  --color-bg-subtle: #F4F6F8;
+  --color-bg-glass: rgba(255, 255, 255, 0.90);
+
+  /* Primary Soft Gradients (Hero & Ambient) */
+  --color-mint-light: #A8F0C6;
+  --color-aqua-teal: #7FE0D9;
+  --color-sky-soft: #BFEFFA;
+  --color-mint-pale: #DFF7E9;
+  --gradient-mint-ambient: linear-gradient(135deg, #edfdf4 0%, #e6faf7 45%, #eff9fe 100%);
+  --gradient-mint-glow: radial-gradient(circle at 10% 20%, rgba(168, 240, 198, 0.35) 0%, transparent 40%),
+                        radial-gradient(circle at 90% 10%, rgba(191, 239, 250, 0.4) 0%, transparent 45%),
+                        radial-gradient(circle at 50% 80%, rgba(127, 224, 217, 0.25) 0%, transparent 50%);
+
+  /* Hairline Borders */
+  --color-border: #E7EAEC;
+  --color-border-subtle: #EEF1F3;
+  --color-border-hover: #D5D9DC;
+  --color-border-focus: #0D0F12;
+
+  /* Neutrals (High Contrast, Clean SaaS Chrome) */
+  --color-text-primary: #0D0F12;
+  --color-text-secondary: #4A4F55;
+  --color-text-muted: #7B828A;
+  --color-text-dim: #9FA6AE;
+  --color-text-inverse: #FFFFFF;
+
+  /* Functional Accents */
+  --color-cta-black: #0D0F12;
+  --color-cta-hover: #22262B;
+  --color-success-mint: #2FBF71;
+  --color-alert-red: #F14C4C;
+  --color-warning-amber: #EAA11F;
+  --color-teal-action: #14B8A6;
+
+  /* Geometry & Soft Elevation */
+  --radius-card: 20px;
+  --radius-inner: 14px;
+  --radius-pill: 999px;
+  --radius-sm: 8px;
+
+  /* Diffuse, Soft Shadows */
+  --shadow-sm: 0 2px 6px rgba(13, 15, 18, 0.03);
+  --shadow-card: 0 8px 24px rgba(13, 15, 18, 0.05), 0 1px 3px rgba(13, 15, 18, 0.03);
+  --shadow-elevated: 0 16px 36px rgba(13, 15, 18, 0.08), 0 2px 6px rgba(13, 15, 18, 0.04);
+  --shadow-pill: 0 4px 14px rgba(13, 15, 18, 0.06);
+
+  --font-sans: 'Inter', system-ui, -apple-system, sans-serif;
+  --font-mono: 'JetBrains Mono', monospace;
+}
+
+*, *::before, *::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+html, body, #root {
+  height: 100%;
+  overflow: hidden;
+}
+
+body {
+  font-family: var(--font-sans);
+  background: var(--color-bg-base);
+  color: var(--color-text-primary);
+  font-size: 13px;
+  line-height: 1.5;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* ── Ambient Background Texture ────────────────────────────── */
+.app-container {
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+  background: var(--color-bg-base);
+  background-image: var(--gradient-mint-glow);
+  background-attachment: fixed;
+  overflow: hidden;
+}
+
+/* ── Scrollbars (Soft Gray) ─────────────────────────────────── */
+::-webkit-scrollbar { width: 5px; height: 5px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: #D5D9DC; border-radius: 999px; }
+::-webkit-scrollbar-thumb:hover { background: #BAC0C6; }
+
+/* ── Modern Card Surface ────────────────────────────────────── */
+.card {
+  background: var(--color-bg-card);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-card);
+  box-shadow: var(--shadow-card);
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.card-hover:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-elevated);
+}
+
+.glass {
+  background: var(--color-bg-glass);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-card);
+  box-shadow: var(--shadow-card);
+}
+
+/* ── Soft Pill Badges ───────────────────────────────────────── */
+.badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 4px 10px;
+  border-radius: var(--radius-pill);
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.2px;
+}
+
+.badge-mint {
+  background: var(--color-mint-pale);
+  color: #126338;
+  border: 1px solid rgba(47, 191, 113, 0.25);
+}
+
+.badge-aqua {
+  background: #E0F8F6;
+  color: #0E746D;
+  border: 1px solid rgba(127, 224, 217, 0.4);
+}
+
+.badge-sky {
+  background: #E8F7FD;
+  color: #0369A1;
+  border: 1px solid rgba(191, 239, 250, 0.5);
+}
+
+.badge-neutral {
+  background: #F4F6F8;
+  color: var(--color-text-secondary);
+  border: 1px solid var(--color-border);
+}
+
+.badge-critical {
+  background: #FEE8E8;
+  color: #B91C1C;
+  border: 1px solid rgba(241, 76, 76, 0.3);
+}
+
+.badge-extreme {
+  background: #FEF3C7;
+  color: #B45309;
+  border: 1px solid rgba(234, 161, 31, 0.35);
+}
+
+.badge-high {
+  background: #E0F8F6;
+  color: #0E746D;
+  border: 1px solid rgba(127, 224, 217, 0.4);
+}
+
+.badge-moderate {
+  background: var(--color-mint-pale);
+  color: #126338;
+  border: 1px solid rgba(47, 191, 113, 0.25);
+}
+
+.badge-low {
+  background: #F4F6F8;
+  color: var(--color-text-secondary);
+  border: 1px solid var(--color-border);
+}
+
+.badge-info {
+  background: #E8F7FD;
+  color: #0369A1;
+  border: 1px solid rgba(191, 239, 250, 0.5);
+}
+
+/* ── Circular Icon Badges ───────────────────────────────────── */
+.icon-badge {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background: var(--color-mint-pale);
+  color: #126338;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.icon-badge-teal {
+  background: #E0F8F6;
+  color: #0E746D;
+}
+
+.icon-badge-sky {
+  background: #E8F7FD;
+  color: #0369A1;
+}
+
+/* ── Typography Helpers ─────────────────────────────────────── */
+.section-label {
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.6px;
+  text-transform: uppercase;
+  color: var(--color-text-muted);
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.value-large {
+  font-size: 32px;
+  font-weight: 800;
+  color: var(--color-text-primary);
+  line-height: 1;
+  letter-spacing: -0.8px;
+}
+
+.value-medium {
+  font-size: 20px;
+  font-weight: 700;
+  color: var(--color-text-primary);
+  line-height: 1.1;
+  letter-spacing: -0.4px;
+}
+
+.mono { font-family: var(--font-mono); }
+
+/* ── Pill Buttons ───────────────────────────────────────────── */
+.btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 18px;
+  border-radius: var(--radius-pill);
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  border: 1px solid transparent;
+  transition: all 0.18s ease;
+  font-family: var(--font-sans);
+  box-shadow: var(--shadow-sm);
+}
+
+.btn-primary {
+  background: var(--color-cta-black);
+  color: var(--color-text-inverse);
+  border-color: var(--color-cta-black);
+}
+.btn-primary:hover {
+  background: var(--color-cta-hover);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(13, 15, 18, 0.18);
+}
+
+.btn-secondary {
+  background: #FFFFFF;
+  color: var(--color-text-primary);
+  border-color: var(--color-border);
+}
+.btn-secondary:hover {
+  background: #F4F6F8;
+  border-color: var(--color-border-hover);
+  transform: translateY(-1px);
+}
+
+.btn-mint {
+  background: var(--color-mint-pale);
+  color: #126338;
+  border-color: rgba(47, 191, 113, 0.3);
+}
+.btn-mint:hover {
+  background: #c8f5dc;
+  transform: translateY(-1px);
+}
+
+.btn-ghost {
+  background: #FFFFFF;
+  color: var(--color-text-secondary);
+  border: 1px solid var(--color-border);
+}
+.btn-ghost:hover {
+  background: #F8FAFC;
+  color: var(--color-text-primary);
+  border-color: var(--color-border-hover);
+  transform: translateY(-1px);
+}
+
+.btn:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+  transform: none !important;
+}
+
+/* ── Spinner ────────────────────────────────────────────────── */
+@keyframes spin { to { transform: rotate(360deg); } }
+.spinner {
+  width: 16px; height: 16px;
+  border: 2px solid rgba(13, 15, 18, 0.15);
+  border-top-color: var(--color-text-primary);
+  border-radius: 50%;
+  animation: spin 0.7s linear infinite;
+  display: inline-block;
+  flex-shrink: 0;
+}
+
+/* ── Progress Bar ───────────────────────────────────────────── */
+.progress-bar {
+  background: #EEF1F3;
+  border-radius: var(--radius-pill);
+  overflow: hidden;
+  height: 6px;
+}
+.progress-fill {
+  height: 100%;
+  background: linear-gradient(90deg, #2FBF71 0%, #7FE0D9 100%);
+  border-radius: var(--radius-pill);
+  transition: width 0.5s ease;
+}
+
+/* ── Pulse Animation for Alerts ─────────────────────────────── */
+@keyframes pulse-ring-mint {
+  0%   { box-shadow: 0 0 0 0px rgba(47, 191, 113, 0.45); }
+  100% { box-shadow: 0 0 0 8px rgba(47, 191, 113, 0); }
+}
+.pulse-ring-mint { animation: pulse-ring-mint 1.8s ease-out infinite; }
+
+/* ── Inputs & Selects ───────────────────────────────────────── */
+input, select, textarea {
+  background: #FFFFFF;
+  border: 1px solid var(--color-border);
+  border-radius: 10px;
+  color: var(--color-text-primary);
+  font-family: var(--font-sans);
+  font-size: 12px;
+  padding: 8px 12px;
+  outline: none;
+  transition: all 0.18s ease;
+  width: 100%;
+  box-shadow: 0 1px 2px rgba(0,0,0,0.02);
+}
+input:focus, select:focus, textarea:focus {
+  border-color: #0D0F12;
+  box-shadow: 0 0 0 3px rgba(13, 15, 18, 0.08);
+}
+select option { background: #FFFFFF; color: var(--color-text-primary); }
+
+/* ── Leaflet Clean Light Map Container Overrides ────────────── */
+.leaflet-container {
+  background: #f4f6f8 !important;
+  border-radius: var(--radius-card);
+  font-family: var(--font-sans) !important;
+}
+.leaflet-control-zoom a {
+  background: #FFFFFF !important;
+  color: var(--color-text-primary) !important;
+  border: 1px solid var(--color-border) !important;
+  border-radius: 8px !important;
+  box-shadow: var(--shadow-sm) !important;
+}
+.leaflet-control-zoom a:hover {
+  background: #F4F6F8 !important;
+}
+
+/* ── Grid Utilities ─────────────────────────────────────────── */
+.grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+.grid-3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }
+.divider { height: 1px; background: var(--color-border); margin: 10px 0; }
+
+/* ── Print Stylesheet ───────────────────────────────────────── */
+@media print {
+  body { background: #FFFFFF !important; color: #000000 !important; }
+  .no-print { display: none !important; }
+  .printable-bulletin {
+    background: #FFFFFF !important;
+    border: none !important;
+    box-shadow: none !important;
+  }
+}
