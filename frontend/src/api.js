@@ -223,3 +223,166 @@ export const verifyAuditChain = async () => {
     };
   }
 };
+
+// ─────────────────────────────────────────────────────────────────────────────
+// STEP 5 — Real-Time API functions (connects to Step 4 endpoints)
+// ─────────────────────────────────────────────────────────────────────────────
+
+/**
+ * Fetch the complete live inference pipeline result for the given NIO basin.
+ * Returns null if the backend is unreachable (caller should keep mock data).
+ */
+export const fetchLiveStorm = async (basin = 'BAY_OF_BENGAL') => {
+  try {
+    const res = await axios.get(
+      `${API_BASE}/realtime/live-storm?basin=${basin}`,
+      { timeout: 30000 }
+    );
+    return res.data;
+  } catch (err) {
+    console.warn('[LIVE] live-storm fetch failed:', err.message);
+    return null;
+  }
+};
+
+/**
+ * Trigger an immediate background atmospheric scan.
+ * Returns acknowledgement immediately; results arrive via fetchLiveStorm.
+ */
+export const triggerLiveScan = async (basin = 'BAY_OF_BENGAL') => {
+  try {
+    const res = await axios.post(
+      `${API_BASE}/realtime/trigger-scan?basin=${basin}`,
+      {},
+      { timeout: 5000 }
+    );
+    return res.data;
+  } catch (err) {
+    console.warn('[LIVE] trigger-scan failed:', err.message);
+    return null;
+  }
+};
+
+/**
+ * Fetch per-sector GPI grid for basin threat map overlay.
+ */
+export const fetchBasinScan = async (basin = 'BAY_OF_BENGAL') => {
+  try {
+    const res = await axios.get(
+      `${API_BASE}/realtime/basin-scan?basin=${basin}`,
+      { timeout: 30000 }
+    );
+    return res.data;
+  } catch (err) {
+    console.warn('[LIVE] basin-scan failed:', err.message);
+    return null;
+  }
+};
+
+/**
+ * Adapt the live-storm API response to the stormData shape expected by all
+ * existing dashboard components (CycloneMap, IntensityCard, RICard, etc.).
+ * 
+ * This is a pure mapping function — no network calls made here.
+ */
+export const mapLiveToStormData = (live) => {
+  if (!live) return null;
+
+  const basinLabel =
+    live.basin === 'ARABIAN_SEA' ? 'Arabian Sea' : 'Bay of Bengal';
+
+  // Track forecast shape for IntensityCard chart & CycloneMap
+  const track_forecast = (live.track_waypoints || []).map((w) => ({
+    timestamp: w.timestamp_utc,
+    lat: w.lat,
+    lon: w.lon,
+    wind_kt: w.wind_speed_kt,
+    imd_category: w.imd_category,
+    central_pressure_hpa: w.central_pressure_hpa,
+  }));
+
+  // District risk shape for RiskMatrix
+  const district_risk_assessments = (live.coastal_risk_top5 || []).map((d) => ({
+    district: d.district,
+    state: d.state,
+    lat: d.lat,
+    lon: d.lon,
+    composite_risk_score: d.composite_risk,
+    risk_category: d.risk_category,
+    storm_surge_m: d.surge_height_m,
+    surge_severity: d.surge_severity,
+    wind_hazard_kt: d.local_wind_kt,
+    critical_infrastructure: d.critical_infrastructure || [],
+    cyclone_shelters: d.cyclone_shelters,
+  }));
+
+  return {
+    // Identity
+    storm_name: live.is_active_cyclone ? 'LIVE SYSTEM' : 'NIO WATCH',
+    basin: basinLabel,
+    frame_id: `LIVE_${live.basin}_${live.scan_timestamp_utc}`,
+
+    // Current position from vortex centre
+    current_observation: {
+      timestamp: live.scan_timestamp_utc,
+      lat: live.genesis_lat,
+      lon: live.genesis_lon,
+      max_sustained_wind_kt: live.intensity.wind_speed_kt,
+      central_pressure_hpa: live.intensity.central_pressure_hpa,
+      imd_category: live.intensity.imd_category,
+    },
+
+    // Intensity (maps directly to IntensityCard)
+    intensity: {
+      wind_speed_kt: live.intensity.wind_speed_kt,
+      wind_speed_kmh: live.intensity.wind_speed_kmh,
+      imd_category: live.intensity.imd_category,
+      central_pressure_hpa: live.intensity.central_pressure_hpa,
+      pressure_deficit_hpa: live.intensity.pressure_deficit_hpa,
+      uncertainty_kt: live.intensity.uncertainty_kt,
+      confidence_interval_90: [
+        Math.round(live.intensity.wind_speed_kt - live.intensity.uncertainty_kt * 1.5),
+        Math.round(live.intensity.wind_speed_kt + live.intensity.uncertainty_kt * 1.5),
+      ],
+    },
+
+    // RI (maps to RICard — adapts live format to existing thermo shape)
+    rapid_intensification: {
+      ri_probability: live.rapid_intensification.ri_probability,
+      is_ri_expected: live.rapid_intensification.is_ri_flagged,
+      alert_level: live.rapid_intensification.is_ri_flagged ? 'CRITICAL' : 'LOW',
+      advisory: live.rapid_intensification.advisory,
+      key_drivers: live.rapid_intensification.favorable_factors || [],
+      thermodynamics: {
+        // Surface values are shown in RICard — pulled from live scan
+        sea_surface_temp_c: live.live_sst_c || 29.0,
+        vertical_wind_shear_kt: live.live_shear_kt || 15.0,
+        relative_humidity_700hpa: live.live_rh700 || 75.0,
+        ocean_heat_content_kj_cm2: live.live_ohc_proxy || 65.0,
+      },
+    },
+
+    // Track for map + intensity chart
+    track_forecast,
+    uncertainty_cone_geojson: live.uncertainty_cone_geojson,
+
+    // Risk districts
+    district_risk_assessments,
+
+    // Landfall (not computed in real-time pipeline yet — placeholder)
+    landfall: { has_landfall: false },
+
+    // Extra live telemetry fields (consumed by Navbar live badge)
+    live_metrics: {
+      gpi: live.genesis_gpi,
+      genesis_probability: live.genesis_probability,
+      threat_level: live.genesis_threat_level,
+      scan_timestamp_utc: live.scan_timestamp_utc,
+      pipeline_elapsed_s: live.elapsed_seconds,
+      is_cache_hit: live._cache_hit,
+      is_active_cyclone: live.is_active_cyclone,
+      requires_advisory: live.requires_immediate_advisory,
+    },
+  };
+};
+
