@@ -14,6 +14,11 @@ This document establishes the strict workflow rules and sequential milestones fo
 4. **Git Version Control & Push Protocol**:
    - After each milestone is verified and passes all tests, the changes will be staged, committed with a descriptive conventional commit message, and pushed to the upstream repository.
 
+5. **Branching Strategy** *(updated 2026-09-25)*:
+   - All step implementations (Step 1 through Step 6) must be developed and pushed on a dedicated feature branch: **`feature/realtime-pipeline`**.
+   - `master` is the stable base. No step work is pushed directly to `master`.
+   - After all steps pass final verification (Step 6), a Pull Request from `feature/realtime-pipeline` → `master` will be raised for the release merge.
+
 ---
 
 ## 🗺️ Step-by-Step Implementation Roadmap
