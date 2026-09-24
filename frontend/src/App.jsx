@@ -165,20 +165,23 @@ export default function App() {
       {/* ── Toast banner ───────────────────────────────────────────────── */}
       {liveBanner && (
         <div style={{
-          position: 'fixed', top: '12px', left: '50%',
+          position: 'fixed', top: '14px', left: '50%',
           transform: 'translateX(-50%)',
           zIndex: 9999,
-          background: 'rgba(18,99,56,0.94)',
-          color: '#fff',
+          background: liveBanner.startsWith('⚠️')
+            ? 'rgba(226, 90, 56, 0.92)'
+            : 'rgba(30, 31, 34, 0.92)',
+          color: '#FFFFFF',
           fontSize: '12px', fontWeight: 600,
-          padding: '8px 20px',
+          padding: '9px 22px',
           borderRadius: '999px',
-          boxShadow: '0 4px 24px rgba(0,0,0,0.18)',
-          backdropFilter: 'blur(12px)',
-          letterSpacing: '0.1px',
+          boxShadow: '0 8px 28px rgba(30,31,34,0.20)',
+          backdropFilter: 'blur(16px)',
+          letterSpacing: '0.02em',
           pointerEvents: 'none',
           animation: 'fadeInDown 0.3s ease',
           whiteSpace: 'nowrap',
+          border: '1px solid rgba(255,255,255,0.15)',
         }}>
           {liveBanner}
         </div>
@@ -206,25 +209,31 @@ export default function App() {
       {/* ── Live Telemetry Status Bar (visible in live mode only) ─────── */}
       {liveMode && (
         <div style={{
-          margin: '0 18px 6px 18px',
-          padding: '7px 18px',
-          background: 'linear-gradient(90deg, rgba(18,99,56,0.07) 0%, rgba(18,99,56,0.03) 100%)',
-          border: '1px solid rgba(18,99,56,0.18)',
-          borderRadius: '12px',
+          margin: '0 14px 6px 14px',
+          padding: '8px 20px',
+          background: 'rgba(255, 255, 255, 0.70)',
+          backdropFilter: 'blur(12px)',
+          border: liveMetrics
+            ? '1px solid rgba(226, 90, 56, 0.20)'
+            : '1px solid rgba(255, 208, 67, 0.25)',
+          borderRadius: '999px',
           display: 'flex',
           alignItems: 'center',
-          gap: '24px',
+          gap: '20px',
           fontSize: '11px',
-          color: 'var(--color-text-muted)',
+          color: 'var(--text-secondary)',
           flexWrap: 'wrap',
         }}>
-          <span style={{ display: 'flex', alignItems: 'center', gap: '5px', fontWeight: 700, color: '#126338' }}>
+          {/* Live dot + label */}
+          <span style={{ display: 'flex', alignItems: 'center', gap: '6px', fontWeight: 700, color: 'var(--text-primary)' }}>
             <span style={{
               width: '7px', height: '7px', borderRadius: '50%',
-              background: liveLoading ? '#f0a500' : '#e53935',
+              background: liveLoading ? 'var(--yellow-base)' : 'var(--danger)',
               display: 'inline-block',
+              boxShadow: liveLoading ? '0 0 6px var(--yellow-base)' : '0 0 6px var(--danger)',
+              animation: 'pulse-live 1.2s infinite',
             }} />
-            OPEN-METEO LIVE TELEMETRY
+            OPEN-METEO LIVE
           </span>
 
           {liveMetrics ? (
@@ -242,8 +251,8 @@ export default function App() {
               </span>
               <span style={{
                 fontWeight: 700,
-                color: liveMetrics.threat_level === 'EXTREME' ? '#e53935'
-                  : liveMetrics.threat_level === 'HIGH' ? '#f0a500' : '#126338',
+                color: liveMetrics.threat_level === 'EXTREME' ? 'var(--danger)'
+                  : liveMetrics.threat_level === 'HIGH' ? '#8A5500' : '#1B6B40',
               }}>
                 ⚠ {liveMetrics.threat_level}
               </span>
@@ -251,23 +260,23 @@ export default function App() {
               <span>📉 {stormData.intensity?.central_pressure_hpa} hPa</span>
               {liveMetrics.requires_advisory && (
                 <span style={{
-                  fontWeight: 700, color: '#e53935',
-                  padding: '2px 10px', borderRadius: '999px',
-                  background: 'rgba(229,57,53,0.08)',
-                  border: '1px solid rgba(229,57,53,0.25)',
+                  fontWeight: 700, color: 'var(--danger)',
+                  padding: '2px 12px', borderRadius: '999px',
+                  background: 'rgba(226,90,56,0.09)',
+                  border: '1px solid rgba(226,90,56,0.22)',
                 }}>
-                  ⚡ IMMEDIATE ADVISORY REQUIRED
+                  ⚡ IMMEDIATE ADVISORY
                 </span>
               )}
-              <span style={{ marginLeft: 'auto', fontSize: '10px' }}>
-                AUTO-REFRESH: 15 MIN · {lastLiveRefresh
+              <span style={{ marginLeft: 'auto', fontSize: '10px', color: 'var(--text-muted)' }}>
+                AUTO-REFRESH 15min · {lastLiveRefresh
                   ? `LAST: ${new Date(lastLiveRefresh).toISOString().slice(11, 19)} UTC`
-                  : 'SCANNING...'}
+                  : 'SCANNING…'}
               </span>
             </>
           ) : (
-            <span style={{ fontStyle: 'italic' }}>
-              {liveLoading ? 'Scanning NIO basin for active disturbances...' : 'Awaiting live telemetry...'}
+            <span style={{ fontStyle: 'italic', color: 'var(--text-muted)' }}>
+              {liveLoading ? 'Scanning NIO basin for active disturbances…' : 'Awaiting live telemetry…'}
             </span>
           )}
         </div>
@@ -287,7 +296,7 @@ export default function App() {
         flex: 1,
         padding: '0 14px 14px 14px',
         display: 'grid',
-        gridTemplateColumns: '1.75fr 1fr',
+        gridTemplateColumns: '1.65fr 1fr',
         gap: '14px',
         minHeight: 0,
         overflow: 'hidden'

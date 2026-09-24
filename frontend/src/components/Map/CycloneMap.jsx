@@ -11,30 +11,30 @@ L.Icon.Default.mergeOptions({
   shadowUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-shadow.png',
 });
 
-// Mint Fintech storm center reticle icon
+// Warm Organic storm center reticle icon
 const stormIcon = L.divIcon({
   className: 'custom-storm-marker',
   html: `
-    <div style="position: relative; width: 26px; height: 26px;">
-      <div style="position: absolute; width: 26px; height: 26px; border-radius: 50%; background: rgba(47,191,113,0.35); animation: pulse-ring-mint 1.8s infinite;"></div>
-      <div style="position: absolute; top: 4px; left: 4px; width: 18px; height: 18px; border-radius: 50%; background: #0D0F12; border: 3px solid #2FBF71; box-shadow: 0 2px 8px rgba(0,0,0,0.15);"></div>
+    <div style="position: relative; width: 28px; height: 28px;">
+      <div style="position: absolute; width: 28px; height: 28px; border-radius: 50%; background: rgba(255,208,67,0.30); animation: pulse-ring-warm 1.8s ease-out infinite;"></div>
+      <div style="position: absolute; top: 4px; left: 4px; width: 20px; height: 20px; border-radius: 50%; background: #1E1F22; border: 2.5px solid #FFD043; box-shadow: 0 0 8px rgba(255,208,67,0.5), 0 2px 8px rgba(0,0,0,0.20);"></div>
     </div>
   `,
-  iconSize: [26, 26],
-  iconAnchor: [13, 13],
+  iconSize: [28, 28],
+  iconAnchor: [14, 14],
 });
 
-// Mint Fintech solid black pill landfall marker
+// Warm charcoal pill landfall marker
 const landfallIcon = L.divIcon({
   className: 'custom-landfall-marker',
   html: `
-    <div style="background: #0D0F12; color: #FFFFFF; font-family: 'Inter', sans-serif; font-size: 10px; font-weight: 700; padding: 3px 10px; border-radius: 999px; box-shadow: 0 4px 12px rgba(13,15,18,0.25); white-space: nowrap; display: flex; align-items: center; gap: 4px;">
-      <span style="width: 6px; height: 6px; border-radius: 50%; background: #F14C4C;"></span>
+    <div style="background: #1E1F22; color: #FFFFFF; font-family: 'Plus Jakarta Sans', 'Inter', sans-serif; font-size: 10px; font-weight: 700; padding: 4px 12px; border-radius: 999px; box-shadow: 0 4px 14px rgba(30,31,34,0.30); white-space: nowrap; display: flex; align-items: center; gap: 5px; border: 1px solid rgba(255,255,255,0.10);">
+      <span style="width: 6px; height: 6px; border-radius: 50%; background: #E25A38; box-shadow: 0 0 5px #E25A38;"></span>
       PROJECTED LANDFALL
     </div>
   `,
-  iconSize: [140, 22],
-  iconAnchor: [70, 11],
+  iconSize: [148, 24],
+  iconAnchor: [74, 12],
 });
 
 function RecenterMap({ center }) {
@@ -80,22 +80,26 @@ export default function CycloneMap({
       {/* Floating Pill Legend Overlay */}
       <div style={{
         position: 'absolute', top: '12px', left: '14px', zIndex: 1000,
-        background: 'rgba(255, 255, 255, 0.94)', backdropFilter: 'blur(12px)',
-        padding: '6px 14px', borderRadius: 'var(--radius-pill)', border: '1px solid var(--color-border)',
-        boxShadow: 'var(--shadow-card)',
-        fontSize: '11px', display: 'flex', gap: '14px', fontWeight: 500
+        background: 'rgba(255, 255, 255, 0.90)',
+        backdropFilter: 'blur(14px)',
+        WebkitBackdropFilter: 'blur(14px)',
+        padding: '6px 16px',
+        borderRadius: '999px',
+        border: '1px solid rgba(0,0,0,0.07)',
+        boxShadow: '0 8px 24px rgba(50,40,25,0.08)',
+        fontSize: '11px', display: 'flex', gap: '14px', fontWeight: 500,
       }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-          <span style={{ width: '8px', height: '8px', borderRadius: '50%', background: '#0D0F12', border: '2px solid #2FBF71' }} />
-          <span style={{ color: 'var(--color-text-primary)' }}>Eye Center</span>
+          <span style={{ width: '8px', height: '8px', borderRadius: '50%', background: '#1E1F22', border: '2px solid #FFD043', boxShadow: '0 0 5px rgba(255,208,67,0.5)' }} />
+          <span style={{ color: 'var(--text-primary)' }}>Eye Center</span>
         </div>
         <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-          <span style={{ width: '12px', height: '3px', background: '#0D0F12', borderRadius: '2px' }} />
-          <span style={{ color: 'var(--color-text-secondary)' }}>Bi-LSTM Track (+48h)</span>
+          <span style={{ width: '12px', height: '3px', background: '#1E1F22', borderRadius: '2px' }} />
+          <span style={{ color: 'var(--text-secondary)' }}>Bi-LSTM Track (+48h)</span>
         </div>
         <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-          <span style={{ width: '12px', height: '10px', background: 'rgba(127, 224, 217, 0.35)', border: '1px dashed #14B8A6', borderRadius: '2px' }} />
-          <span style={{ color: 'var(--color-text-secondary)' }}>70% Uncertainty Cone</span>
+          <span style={{ width: '12px', height: '10px', background: 'rgba(255,208,67,0.28)', border: '1px dashed rgba(255,126,103,0.7)', borderRadius: '3px' }} />
+          <span style={{ color: 'var(--text-secondary)' }}>70% Uncertainty Cone</span>
         </div>
       </div>
 
@@ -118,51 +122,51 @@ export default function CycloneMap({
           opacity={0.85}
         />
 
-        {/* Soft Aqua Uncertainty Cone Polygon */}
+        {/* Warm Uncertainty Cone — yellow/coral fill */}
         {coneCoords.length > 2 && (
           <Polygon
             positions={coneCoords}
             pathOptions={{
-              color: '#14B8A6',
+              color: 'rgba(255,126,103,0.65)',
               weight: 1.5,
               dashArray: '5, 5',
-              fillColor: '#7FE0D9',
-              fillOpacity: 0.28,
+              fillColor: '#FFD043',
+              fillOpacity: 0.15,
             }}
           />
         )}
 
-        {/* Track Forecast Polyline (Near-black sleek trajectory) */}
+        {/* Track Forecast Polyline — warm charcoal */}
         {polylineCoords.length > 1 && (
           <Polyline
             positions={polylineCoords}
             pathOptions={{
-              color: '#0D0F12',
+              color: '#1E1F22',
               weight: 3,
-              opacity: 0.9,
+              opacity: 0.85,
             }}
           />
         )}
 
-        {/* Forecast Waypoint Markers */}
+        {/* Forecast Waypoint Markers — warm fill dots */}
         {trackPoints.map((pt, idx) => (
           <CircleMarker
             key={idx}
             center={[pt.lat, pt.lon]}
             radius={5}
             pathOptions={{
-              color: '#0D0F12',
-              fillColor: '#FFFFFF',
+              color: '#1E1F22',
+              fillColor: '#FFD043',
               fillOpacity: 1,
               weight: 2,
             }}
           >
             <Popup>
-              <div style={{ fontSize: '11px', color: '#0D0F12', fontFamily: 'Inter, sans-serif' }}>
+              <div style={{ fontSize: '11px', color: '#191A1C', fontFamily: "'Plus Jakarta Sans', 'Inter', sans-serif" }}>
                 <strong style={{ display: 'block', marginBottom: '2px' }}>Lead Time: +{(idx + 1) * 12}h</strong>
                 Wind: <strong>{pt.wind_kt || pt.max_sustained_wind_kt} kt</strong><br />
                 Category: {pt.imd_category || 'N/A'}<br />
-                Coordinates: {pt.lat.toFixed(2)}°N, {pt.lon.toFixed(2)}°E
+                Coords: {pt.lat.toFixed(2)}°N, {pt.lon.toFixed(2)}°E
               </div>
             </Popup>
           </CircleMarker>
@@ -194,11 +198,14 @@ export default function CycloneMap({
           </Marker>
         )}
 
-        {/* Coastal District Risk Markers */}
+        {/* Coastal District Risk Markers — warm palette */}
         {districts.map((d, i) => {
           const lat = d.lat || (21.5 - i * 0.45);
           const lon = d.lon || (87.8 + (i % 2 === 0 ? 0.4 : -0.3));
-          const color = d.risk_category === 'CRITICAL' ? '#F14C4C' : d.risk_category === 'HIGH' ? '#EAA11F' : '#2FBF71';
+          const color = d.risk_category === 'CRITICAL' ? '#E25A38'
+            : d.risk_category === 'HIGH'     ? '#FF7E67'
+            : d.risk_category === 'MODERATE' ? '#FFD043'
+            : '#4CAF7D';
           return (
             <CircleMarker
               key={i}
@@ -207,12 +214,12 @@ export default function CycloneMap({
               pathOptions={{
                 color: '#FFFFFF',
                 fillColor: color,
-                fillOpacity: 0.9,
+                fillOpacity: 0.92,
                 weight: 2,
               }}
             >
               <Popup>
-                <div style={{ fontSize: '11px', color: '#0D0F12', fontFamily: 'Inter, sans-serif' }}>
+                <div style={{ fontSize: '11px', color: '#191A1C', fontFamily: "'Plus Jakarta Sans', 'Inter', sans-serif" }}>
                   <strong>{d.district} ({d.state})</strong><br />
                   Composite Risk: <strong>{d.composite_risk_score}</strong> ({d.risk_category})<br />
                   Storm Surge: <strong>{d.storm_surge_m} m</strong><br />

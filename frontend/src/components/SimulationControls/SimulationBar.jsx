@@ -13,19 +13,11 @@ export default function SimulationBar({ onStepChange, currentStorm, onStormSelec
     setStep(data.step);
     setTotalSteps(data.total_steps || 6);
     setStepLabel(data.label || `Step ${data.step + 1}`);
-    if (onStepChange) {
-      onStepChange(data);
-    }
+    if (onStepChange) onStepChange(data);
   };
 
-  const handleNext = () => {
-    advanceStep((step + 1) % totalSteps);
-  };
-
-  const handleReset = () => {
-    setIsPlaying(false);
-    advanceStep(0);
-  };
+  const handleNext  = () => advanceStep((step + 1) % totalSteps);
+  const handleReset = () => { setIsPlaying(false); advanceStep(0); };
 
   useEffect(() => {
     let timer = null;
@@ -43,21 +35,30 @@ export default function SimulationBar({ onStepChange, currentStorm, onStormSelec
 
   return (
     <div style={{
-      margin: '0 18px 8px 18px',
-      padding: '6px 14px',
+      margin: '0 14px 6px 14px',
+      padding: '7px 18px',
       display: 'flex',
       alignItems: 'center',
       justifyContent: 'space-between',
-      backgroundColor: '#FFFFFF',
-      border: '1px solid var(--color-border)',
-      borderRadius: 'var(--radius-pill)',
-      boxShadow: 'var(--shadow-sm)'
+      gap: '10px',
+      backgroundColor: 'rgba(255, 255, 255, 0.80)',
+      backdropFilter: 'blur(12px)',
+      border: '1px solid rgba(0, 0, 0, 0.07)',
+      borderRadius: '999px',
+      boxShadow: '0 4px 14px rgba(50, 40, 25, 0.06)',
     }}>
-      {/* Simulation Selector */}
+      {/* Storm Selector */}
       <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-        <span className="badge badge-sky" style={{ display: 'flex', alignItems: 'center', gap: '4px', fontSize: '11px', padding: '3px 10px' }}>
-          <Compass size={12} />
-          <span>HISTORICAL PLAYBACK</span>
+        <span style={{
+          display: 'inline-flex', alignItems: 'center', gap: '5px',
+          fontSize: '10px', fontWeight: 700, padding: '3px 10px',
+          borderRadius: '999px', letterSpacing: '0.04em',
+          background: 'rgba(255, 208, 67, 0.12)',
+          color: '#7A5700',
+          border: '1px solid rgba(255, 208, 67, 0.32)',
+        }}>
+          <Compass size={11} />
+          HISTORICAL PLAYBACK
         </span>
 
         <select
@@ -68,14 +69,15 @@ export default function SimulationBar({ onStepChange, currentStorm, onStormSelec
             advanceStep(0);
           }}
           style={{
-            width: '180px',
-            padding: '4px 12px',
+            width: '185px',
+            padding: '5px 14px',
             fontSize: '11px',
-            borderRadius: 'var(--radius-pill)',
-            border: '1px solid var(--color-border)',
-            backgroundColor: '#FAFBFC',
+            borderRadius: '999px',
+            border: '1px solid rgba(0,0,0,0.09)',
+            background: '#FDFCFA',
             fontWeight: 600,
-            cursor: 'pointer'
+            color: 'var(--text-primary)',
+            cursor: 'pointer',
           }}
         >
           <option value="FANI">Cyclone Fani (2019)</option>
@@ -91,33 +93,33 @@ export default function SimulationBar({ onStepChange, currentStorm, onStormSelec
           onClick={() => setIsPlaying(!isPlaying)}
           style={{ padding: '5px 14px', fontSize: '11px' }}
         >
-          {isPlaying ? <Pause size={12} color="var(--color-alert-red)" /> : <Play size={12} color="var(--color-success-mint)" />}
+          {isPlaying
+            ? <Pause size={12} color="var(--danger)" />
+            : <Play  size={12} color="var(--success)" />}
           <span>{isPlaying ? 'Pause' : 'Play Timeline'}</span>
         </button>
 
-        <button
-          className="btn btn-secondary"
-          onClick={handleNext}
-          style={{ padding: '5px 12px', fontSize: '11px' }}
-        >
+        <button className="btn btn-secondary" onClick={handleNext} style={{ padding: '5px 12px', fontSize: '11px' }}>
           <SkipForward size={12} />
           <span>Next Step</span>
         </button>
 
-        <button
-          className="btn btn-secondary"
-          onClick={handleReset}
-          style={{ padding: '5px 10px', fontSize: '11px' }}
-        >
+        <button className="btn btn-secondary" onClick={handleReset} style={{ padding: '5px 10px', fontSize: '11px' }}>
           <RotateCcw size={12} />
         </button>
       </div>
 
-      {/* Step Status Indicator */}
+      {/* Step Indicator */}
       <div style={{ display: 'flex', alignItems: 'center', gap: '10px', fontSize: '11px' }}>
-        <span style={{ color: 'var(--color-text-muted)', fontWeight: 500 }}>SYNOPTIC STAGE:</span>
-        <strong style={{ color: 'var(--color-text-primary)' }}>{stepLabel}</strong>
-        <span className="badge badge-mint mono" style={{ fontSize: '10px', padding: '2px 8px' }}>
+        <span style={{ color: 'var(--text-muted)', fontWeight: 500 }}>STAGE:</span>
+        <strong style={{ color: 'var(--text-primary)' }}>{stepLabel}</strong>
+        <span style={{
+          padding: '2px 10px', borderRadius: '999px',
+          fontSize: '10px', fontWeight: 700,
+          background: 'rgba(255,208,67,0.12)',
+          color: '#7A5700',
+          border: '1px solid rgba(255,208,67,0.28)',
+        }}>
           {step + 1} / {totalSteps}
         </span>
       </div>
